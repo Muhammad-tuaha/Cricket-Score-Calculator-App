@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'  // Your existing Android build tools version
-        classpath 'com.google.gms:google-services:4.4.2'  // Ensure the google-services plugin is added here
+        classpath 'com.google.gms:google-services:4.4.2'  // Use the latest version (check for the latest on Firebase docs)
     }
 }
 

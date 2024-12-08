@@ -3,13 +3,13 @@ import 'login_page.dart';
 import 'signup_page.dart';
 import 'menu_page.dart';
 import 'live_score_page.dart'; // Import the LiveScorePage
-import 'calculate_score_page.dart'; // Import the ScoreCalculationPage
+import 'calculate_score_page.dart'; // Import the CalculateScorePage
 import 'ball_speed_page.dart'; // Import the BallSpeedPage
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(); // Firebase initialization
   runApp(CricScoreApp());
 }
 
@@ -18,13 +18,24 @@ class CricScoreApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Myfont2',
+        textTheme: TextTheme(
+          displayLarge: TextStyle(fontFamily: 'Myfont2', fontSize: 32, fontWeight: FontWeight.bold),
+          displayMedium: TextStyle(fontFamily: 'Myfont2', fontSize: 28),
+          displaySmall: TextStyle(fontFamily: 'Myfont2', fontSize: 24),
+          bodyLarge: TextStyle(fontFamily: 'Myfont2', fontSize: 18),
+          bodyMedium: TextStyle(fontFamily: 'Myfont2', fontSize: 16),
+          bodySmall: TextStyle(fontFamily: 'Myfont2', fontSize: 14),
+        ),
+      ),
       initialRoute: '/login',
       routes: {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpPage(),
         '/menu': (context) => MenuPage(),
         '/live_score': (context) => LiveScorePage(), // Route to LiveScorePage
-        '/calculate_score': (context) => ScoreCalculationPage(), // Route to ScoreCalculationPage
+        '/calculate_score': (context) => CalculateScorePage(), // Route to CalculateScorePage
         '/ball_speed': (context) => BallSpeedPage(), // Route to BallSpeedPage
       },
       onGenerateRoute: (settings) {
@@ -45,7 +56,7 @@ class CricScoreApp extends StatelessWidget {
                 page = LiveScorePage();
                 break;
               case '/calculate_score':
-                page = ScoreCalculationPage();
+                page = CalculateScorePage(); // Match with the widget name
                 break;
               case '/ball_speed':
                 page = BallSpeedPage();

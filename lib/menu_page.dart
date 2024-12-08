@@ -64,7 +64,7 @@ class MenuPage extends StatelessWidget {
               // Menu Options
               Expanded(
                 child: ListView(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
                   children: [
                     MenuOption(
                       text: 'Watch Live Score',

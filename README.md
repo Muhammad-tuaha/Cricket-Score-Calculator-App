@@ -1,26 +1,16 @@
-# Cricket-Score-Tracker-App
-A mobile application for calculating cricket scores, broadcasting live scores to other devices and Ball speed calculator as an additional feature.
+# cricscore_app
 
-Core Features:
+A new Flutter project.
 
-1. Match format selection (ODI, Test, T20, IPL, etc.)
-2. Team selection (with flags and logos)
-3. Score input (runs, wickets, overs)
-4. Auto-calculation of:
-    - Run rate
-    - Required run rate
-    - Overs remaining
-    - Wickets remaining
-    - Projected score
-5. Scorecard display (batting and bowling)
+## Getting Started
 
-Live Score Broadcasting Features:
+This project is a starting point for a Flutter application.
 
-1.	Real-time score updates to subscribed devices
-2.	Firebase authentication and firebase real time database allow users to view updated score. 
+A few resources to get you started if this is your first Flutter project:
 
-Technical Requirements:
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-1.  Flutter
-2. Development Environment: Android Studio
-3. Database: Firebase Realtime Database
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
