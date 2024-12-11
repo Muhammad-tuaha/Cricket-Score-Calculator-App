@@ -13,8 +13,14 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  bool isLoading = false; // State to show a loading indicator
+
   // Function to handle login
   Future<void> _login() async {
+    setState(() {
+      isLoading = true; // Show loading animation
+    });
+
     try {
       final String email = emailController.text.trim();
       final String password = passwordController.text.trim();
@@ -32,17 +38,22 @@ class _LoginPageState extends State<LoginPage> {
         password: password,
       );
 
-
-
       // If the user is successfully logged in, navigate to the menu page
       if (userCredential.user != null) {
-        Navigator.pushReplacementNamed(context, '/menu');  // Navigate to /menu after login
+        Navigator.pushReplacementNamed(context, '/menu');
       }
-    } catch (e) {
-      // Handle login errors here
+    } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${e.toString()}')),
+        SnackBar(content: Text('Login failed: ${e.message}')),
       );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An unexpected error occurred.')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false; // Hide loading animation
+      });
     }
   }
 
@@ -147,14 +158,14 @@ class _LoginPageState extends State<LoginPage> {
                         fontSize: 22,
                       ),
                       decoration: InputDecoration(
-                        hintText: '......',
+                        hintText: 'Enter your Password',
                         hintStyle: TextStyle(
                           color: Colors.grey,
-                          fontSize: 42,
+                          fontSize: 22,
                         ),
                         filled: true,
                         fillColor: Colors.white.withOpacity(0.13),
-                        contentPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 12),
+                        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
@@ -168,14 +179,16 @@ class _LoginPageState extends State<LoginPage> {
                       width: 200,
                       height: 60,
                       child: ElevatedButton(
-                        onPressed: _login,  // Call the _login function on button press
+                        onPressed: isLoading ? null : _login, // Disable button while loading
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(35),
                           ),
                         ),
-                        child: Text(
+                        child: isLoading
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text(
                           'Login',
                           style: TextStyle(
                             color: Colors.white,

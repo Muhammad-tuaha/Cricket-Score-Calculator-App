@@ -68,14 +68,7 @@ class _LiveScorePageState extends State<LiveScorePage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-
-            bool isLoggedIn = true;
-            if (isLoggedIn) {
-              Navigator.pop(context);
-            } else {
-
-              Navigator.pushReplacementNamed(context, '/main');
-            }
+            Navigator.pop(context);
           },
         ),
       ),
@@ -110,6 +103,7 @@ class _LiveScorePageState extends State<LiveScorePage> {
                 } else {
                   var matches = snapshot.data!;
                   return SingleChildScrollView(
+                    physics: BouncingScrollPhysics(), // This makes the scrolling smooth
                     child: Column(
                       children: matches.map((match) {
                         return Card(
@@ -179,13 +173,30 @@ class _LiveScorePageState extends State<LiveScorePage> {
                                               match.dateTime,
                                               style: TextStyle(color: Colors.white, fontSize: 14),
                                             ),
+                                            SizedBox(height: 8),
+                                            match.score != null
+                                                ? Text(
+                                              'Score: ${match.score}',
+                                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                            )
+                                                : Container(),
                                             SizedBox(height: 16),
                                             ElevatedButton(
                                               onPressed: () {
                                                 Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => MatchDetailPage(match: match),
+                                                  PageRouteBuilder(
+                                                    pageBuilder: (context, animation, secondaryAnimation) => MatchDetailPage(match: match),
+                                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                      const begin = Offset(1.0, 0.0);
+                                                      const end = Offset.zero;
+                                                      const curve = Curves.easeInOut;
+
+                                                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                                      var offsetAnimation = animation.drive(tween);
+
+                                                      return SlideTransition(position: offsetAnimation, child: child);
+                                                    },
                                                   ),
                                                 );
                                               },
@@ -229,6 +240,7 @@ class MatchData {
   final String dateTime;
   final String t1img;
   final String t2img;
+  final String? score;
 
   MatchData({
     required this.id,
@@ -239,6 +251,7 @@ class MatchData {
     required this.dateTime,
     required this.t1img,
     required this.t2img,
+    this.score,
   });
 
   factory MatchData.fromJson(Map<String, dynamic> json) {
@@ -251,6 +264,7 @@ class MatchData {
       dateTime: json['dateTimeGMT'] ?? '',
       t1img: json['t1img'] ?? 'assets/placeholder_flag.png',
       t2img: json['t2img'] ?? 'assets/placeholder_flag.png',
+      score: json['score'] ?? null,
     );
   }
 }
@@ -269,8 +283,7 @@ class MatchDetailPage extends StatelessWidget {
         elevation: 0,
         title: Text(
           'Match Details',
-          style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold,
-              color: Colors.white,fontFamily: 'Myfont1'),
+          style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Myfont1'),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -281,14 +294,12 @@ class MatchDetailPage extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          // Background image
           SizedBox.expand(
             child: Image.asset(
               'assets/Background.jpg',
               fit: BoxFit.cover,
             ),
           ),
-          // Blur effect
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
@@ -297,10 +308,10 @@ class MatchDetailPage extends StatelessWidget {
               ),
             ),
           ),
-          // Main content
           Padding(
-            padding: const EdgeInsets.only(top: 100.0), 
+            padding: const EdgeInsets.only(top: 100.0),
             child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(), // Smooth scrolling added here as well
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -308,35 +319,38 @@ class MatchDetailPage extends StatelessWidget {
                     child: Text(
                       '${match.t1} vs ${match.t2}',
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontFamily: 'Myfont2'
-                      ),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Myfont2'),
                     ),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'Match Status: ${match.status}',
-                    style: TextStyle(fontSize: 18, color: Colors.white,fontFamily: 'Myfont2'),
+                    style: TextStyle(fontSize: 18, color: Colors.white, fontFamily: 'Myfont2'),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Score: ${match.score ?? 'N/A'}',
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Series: ${match.series}',
-                    style: TextStyle(fontSize: 16, color: Colors.white,fontFamily: 'Myfont2'),
+                    style: TextStyle(fontSize: 16, color: Colors.white, fontFamily: 'Myfont2'),
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Date and Time: ${match.dateTime}',
-                    style: TextStyle(fontSize: 16, color: Colors.white,fontFamily: 'Myfont2'),
+                    style: TextStyle(fontSize: 16, color: Colors.white, fontFamily: 'Myfont2'),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'Team 1: ${match.t1}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white,fontFamily: 'Myfont2'),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Myfont2'),
                   ),
                   SizedBox(height: 8),
-                  // Load the team image from the URL
                   Center(
                     child: Image.network(
                       match.t1img,
@@ -350,10 +364,9 @@ class MatchDetailPage extends StatelessWidget {
                   SizedBox(height: 16),
                   Text(
                     'Team 2: ${match.t2}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white,fontFamily: 'Myfont2'),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Myfont2'),
                   ),
                   SizedBox(height: 8),
-                  // Load the team image from the URL
                   Center(
                     child: Image.network(
                       match.t2img,
@@ -367,25 +380,22 @@ class MatchDetailPage extends StatelessWidget {
                   SizedBox(height: 16),
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Implement logic to fetch live score updates or detailed stats if available
-                      },
+                      onPressed: () {},
                       child: Text(
                         'Refresh Score',
                         style: TextStyle(
-                          color: Colors.white, // Set text color here
+                          color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Myfont2',
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal, // Button background color
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Optional: Adjust padding
+                        backgroundColor: Colors.teal,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),

@@ -14,51 +14,58 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
   int totalWickets = 0;
   final int maxWickets = 10; // Max wickets
   int totalOvers = 0; // Track total overs
+  int maxOvers = 0; // Number of overs to be set by user
+  bool oversSet = false; // Tracks if overs are set
 
   // Function to add score
   void addScore(String score) {
     setState(() {
-      if (totalWickets < maxWickets) {
-        // Add score for valid runs
-        if (score == 'W' && totalWickets < maxWickets) {
-          totalWickets++; // Increment wickets if it's a 'W'
-        } else if (score != 'W' && score != 'WB' && score != 'NB' && score != 'BYE' && score != 'LB' && score.isNotEmpty) {
+      if (totalWickets < maxWickets && totalOvers < maxOvers) {
+        if (score == 'W') {
+          totalWickets++; // Increment wickets
+          scores[currentBall] = 'W'; // Add 'W' to current ball in scores
+          allBallScores.add('W'); // Track all ball scores
+          currentBall++; // Move to the next ball
+        } else if (score == 'NB' || score == 'WB') {
+          totalScore += 1; // Increment score for NB or WB
+          allBallScores.add(score); // Track all ball scores
+        } else if (score.isNotEmpty) {
           totalScore += int.tryParse(score) ?? 0; // Add runs
+          scores[currentBall] = score; // Store the score
+          allBallScores.add(score); // Track all ball scores
+          currentBall++; // Move to the next ball
         }
 
-        scores[currentBall] = score; // Store the score
-        allBallScores.add(score); // Track all ball scores
-        currentBall++; // Move to next ball
-      }
-
-      // Reset after 7th score (start new over)
-      if (currentBall == 6) {
-        totalOvers++; // Increment overs after 6 balls (complete over)
-        currentBall = 0; // Reset for next over
-        scores = List.filled(6, '', growable: false); // Clear ball scores
+        if (currentBall == 6) {
+          totalOvers++; // Increment overs after 6 balls (complete over)
+          currentBall = 0; // Reset for next over
+          scores = List.filled(6, '', growable: false); // Clear ball scores
+        }
       }
     });
   }
+
 
   // Undo the last action
   void undoLast() {
     setState(() {
       if (allBallScores.isNotEmpty) {
-        // Get the last score and undo it
-        String removedScore = allBallScores.removeLast();
-
-        if (removedScore == 'W') {
-          totalWickets = (totalWickets > 0) ? totalWickets - 1 : 0; // Decrease wickets
-        } else if (removedScore != 'WB' && removedScore != 'NB' && removedScore != 'BYE' && removedScore != 'LB') {
-          totalScore -= int.tryParse(removedScore) ?? 0; // Remove score
+        String lastScore = allBallScores.removeLast();
+        if (lastScore == 'W') {
+          totalWickets = (totalWickets > 0) ? totalWickets - 1 : 0;
+        } else if (lastScore == 'NB' || lastScore == 'WB') {
+          totalScore -= 1;
+        } else if (lastScore.isNotEmpty) {
+          totalScore -= int.tryParse(lastScore) ?? 0;
         }
 
-        // If a ball score is removed, decrement the overs if necessary
-        if (currentBall > 0 && currentBall % 6 == 0) {
-          totalOvers--; // Decrease overs count
+        if (currentBall > 0) {
+          currentBall--;
+          scores[currentBall] = '';
+        } else if (totalOvers > 0) {
+          totalOvers--;
+          currentBall = 5; // Move to the last ball of the previous over
         }
-        currentBall--; // Move back to previous ball
-        scores[currentBall] = ''; // Clear the last ball score
       }
     });
   }
@@ -75,7 +82,150 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
     });
   }
 
-  // Build the circle for score display
+  // Show a dialog to set the number of overs
+  void showOversDialog() {
+    TextEditingController oversController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing the dialog
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Set Number of Overs'),
+          content: TextField(
+            controller: oversController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(hintText: 'Enter number of overs'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                int enteredOvers = int.tryParse(oversController.text) ?? 0;
+                if (enteredOvers > 0) {
+                  setState(() {
+                    maxOvers = enteredOvers;
+                    oversSet = true; // Mark overs as set
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('Set'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showOversDialog(); // Show dialog immediately after the widget builds
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: oversSet
+          ? Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/Background.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.black.withOpacity(0.4),
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  Text(
+                    'Score Calculator',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'MyFont1',
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.settings, color: Colors.white),
+                    onPressed: showOversDialog,
+                  ),
+                ],
+              ),
+              SizedBox(height: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: scores.map((score) => buildCircle(score)).toList(),
+              ),
+              SizedBox(height: 20),
+              Column(
+                children: [
+                  Text(
+                    'Total Score: $totalScore',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Wickets: $totalWickets / $maxWickets',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Overs: $totalOvers / $maxOvers',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Expanded( // Fix the issue by wrapping GridView in Expanded
+                child: GridView.count(
+                  crossAxisCount: 4,
+                  shrinkWrap: true,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  padding: EdgeInsets.all(16),
+                  children: [
+                    for (var score in ['0', '1', '2', '3', '4', '6'])
+                      buildButton(score, Colors.black, () => addScore(score)),
+                    buildButton('WB', Colors.black, () => addScore('WB')),
+                    buildButton('NB', Colors.black, () => addScore('NB')),
+                    buildButton('OUT', Colors.red, () => addScore('W')),
+                    buildButton('UNDO', Colors.green, undoLast),
+                    buildButton('RESET', Colors.blue, resetMatch),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      )
+          : Center(
+        child: CircularProgressIndicator(), // Show loading indicator until overs are set
+      ),
+    );
+  }
+
+
   Widget buildCircle(String score) {
     Color? circleColor;
     Color textColor = Colors.black;
@@ -102,7 +252,6 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
     );
   }
 
-  // Build buttons for score input
   Widget buildButton(String label, Color textColor, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -121,118 +270,6 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
           fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background image with blur effect
-          Positioned.fill(
-            child: Image.asset(
-              'assets/Background.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Apply blur effect using BackdropFilter
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-              child: Container(
-                color: Colors.black.withOpacity(0.4), // Optional: add dark overlay
-              ),
-            ),
-          ),
-          // Main content
-          Column(
-            children: [
-              // Add top spacing for the header (back button and 'CRICSCORE')
-              SizedBox(height: 40),  // Increased space from the top
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-
-                  Text(
-                    'Score Calculator',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 38,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'MyFont1',
-                    ),
-                  ),
-                  SizedBox(width: 1), // Placeholder for back button space
-                ],
-              ),
-
-              // 'Score Calculator' Text below
-
-              SizedBox(height: 50),
-
-              // Display the 6 balls (in a row)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: scores.map((score) => buildCircle(score)).toList(),
-              ),
-              SizedBox(height: 20),
-
-              // Display total score, total wickets, and total overs, one below the other
-              Column(
-                children: [
-                  Text(
-                    'Total Score: $totalScore',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Wickets: $totalWickets / $maxWickets',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Overs: $totalOvers',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-
-              // Grid for score buttons
-              GridView.count(
-                crossAxisCount: 4,
-                shrinkWrap: true,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                padding: EdgeInsets.all(16),
-                children: [
-                  for (var score in ['0', '1', '2', '3', '4', '6'])
-                    buildButton(
-                      score,
-                      Colors.black,
-                          () => addScore(score),
-                    ),
-                  buildButton('WB', Colors.black, () => addScore('WB')),
-                  buildButton('NB', Colors.black, () => addScore('NB')),
-                  buildButton('BYE', Colors.black, () => addScore('BYE')),
-                  buildButton('LB', Colors.black, () => addScore('LB')),
-                  buildButton('OUT', Colors.red, () => addScore('W')),
-                  buildButton('UNDO', Colors.green, undoLast),
-                  buildButton('RESET', Colors.blue, resetMatch),
-                ],
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

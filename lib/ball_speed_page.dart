@@ -10,16 +10,19 @@ class BallSpeedPage extends StatefulWidget {
 class _BallSpeedPageState extends State<BallSpeedPage> {
   final TextEditingController distanceController =
   TextEditingController(text: '20.08'); // Default pitch length
-  bool isTiming = false;
   Stopwatch stopwatch = Stopwatch();
   Timer? timer;
   double? calculatedSpeed;
+
+  String buttonText = 'Start';
+  Color buttonColor = Colors.green;
 
   void startTimer() {
     if (stopwatch.isRunning) return; // Prevent multiple starts
     stopwatch.start();
     setState(() {
-      isTiming = true;
+      buttonText = 'Stop';
+      buttonColor = Colors.red;
     });
 
     timer = Timer.periodic(Duration(milliseconds: 100), (timer) {
@@ -49,8 +52,9 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
     final double speedInKilometersPerHour = speedInMetersPerSecond * 3.6;
 
     setState(() {
-      isTiming = false;
       calculatedSpeed = speedInKilometersPerHour;
+      buttonText = 'Reset';
+      buttonColor = Colors.blueGrey;
     });
   }
 
@@ -58,9 +62,20 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
     stopwatch.reset();
     timer?.cancel();
     setState(() {
-      isTiming = false;
+      buttonText = 'Start';
+      buttonColor = Colors.green;
       calculatedSpeed = null;
     });
+  }
+
+  void handleButtonPress() {
+    if (buttonText == 'Start') {
+      startTimer();
+    } else if (buttonText == 'Stop') {
+      stopTimer();
+    } else if (buttonText == 'Reset') {
+      reset();
+    }
   }
 
   void showHowItWorksDialog() {
@@ -75,29 +90,29 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
             ),
           ),
           content: SingleChildScrollView(
-        child: RichText(
-        text: TextSpan(
-        style: TextStyle(fontSize: 16, color: Colors.black),
-        children: [
-        TextSpan(text: '1. Set the pitch length in meters (default is 20.08).\n\n'),
-        TextSpan(text: '2. Press ', style: TextStyle(fontWeight: FontWeight.normal)),
-        TextSpan(text: 'Start', style: TextStyle(fontWeight: FontWeight.bold)),
-        TextSpan(text: ' when the ball is delivered.\n\n'),
-        TextSpan(text: '3. Press ', style: TextStyle(fontWeight: FontWeight.normal)),
-        TextSpan(text: 'Stop', style: TextStyle(fontWeight: FontWeight.bold)),
-        TextSpan(text: ' when the ball reaches the batsman.\n\n'),
-        TextSpan(
-        text:
-        '4. The elapsed time will be used to calculate the speed of the ball in km/h.\n\n'),
-        TextSpan(text: '5. You can modify the pitch length if needed.\n\n'),
-        TextSpan(text: '6. Use the ', style: TextStyle(fontWeight: FontWeight.normal)),
-        TextSpan(text: 'Reset', style: TextStyle(fontWeight: FontWeight.bold)),
-        TextSpan(text: ' button to clear the stopwatch and start over.'),
-        ],
-        ),
-        ),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(fontSize: 16, color: Colors.black),
+                children: [
+                  TextSpan(text: '1. Set the pitch length in meters (default is 20.08).\n\n'),
+                  TextSpan(text: '2. Press ', style: TextStyle(fontWeight: FontWeight.normal)),
+                  TextSpan(text: 'Start', style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: ' when the ball is delivered.\n\n'),
+                  TextSpan(text: '3. Press ', style: TextStyle(fontWeight: FontWeight.normal)),
+                  TextSpan(text: 'Stop', style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: ' when the ball reaches the batsman.\n\n'),
+                  TextSpan(
+                      text:
+                      '4. The elapsed time will be used to calculate the speed of the ball in km/h.\n\n'),
+                  TextSpan(text: '5. You can modify the pitch length if needed.\n\n'),
+                  TextSpan(text: '6. Use the ', style: TextStyle(fontWeight: FontWeight.normal)),
+                  TextSpan(text: 'Reset', style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: ' button to clear the stopwatch and start over.'),
+                ],
+              ),
+            ),
           ),
-        actions: [
+          actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -149,7 +164,6 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Back Button
                     SizedBox(height: 40),
                     Align(
                       alignment: Alignment.topLeft,
@@ -160,8 +174,6 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
                         },
                       ),
                     ),
-
-                    // Title
                     SizedBox(height: 10),
                     Text(
                       'BALL SPEED CALCULATOR',
@@ -175,8 +187,6 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 40),
-
-                    // How It Works Link
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -191,8 +201,6 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
                         ),
                       ),
                     ),
-
-                    // Distance Input
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -229,8 +237,6 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
                       keyboardType: TextInputType.number,
                     ),
                     SizedBox(height: 20),
-
-                    // Stopwatch Display
                     Text(
                       'Elapsed Time: ${stopwatch.elapsed.inMinutes.toString().padLeft(2, '0')}:${(stopwatch.elapsed.inSeconds % 60).toString().padLeft(2, '0')}.${(stopwatch.elapsedMilliseconds % 1000 ~/ 10).toString().padLeft(2, '0')}',
                       style: TextStyle(
@@ -241,75 +247,26 @@ class _BallSpeedPageState extends State<BallSpeedPage> {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20),
-
-                    // Buttons Layout
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
-                              onPressed: startTimer,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(
-                                'Start',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: stopTimer,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(
-                                'Stop',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                    ElevatedButton(
+                      onPressed: handleButtonPress,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Smoothly rounded corners
                         ),
-                        SizedBox(height: 20),
-                        Center(
-                          child: ElevatedButton(
-                            onPressed: reset,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: Text(
-                              'Reset',
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Adjust size
+                      ),
+                      child: Text(
+                        buttonText,
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
+                      ),
                     ),
-                    SizedBox(height: 40),
 
-                    // Speed Display
+                    SizedBox(height: 40),
                     if (calculatedSpeed != null)
                       Text(
                         'Speed: ${calculatedSpeed!.toStringAsFixed(2)} km/h',
