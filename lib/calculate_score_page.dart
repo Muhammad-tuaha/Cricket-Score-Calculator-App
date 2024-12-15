@@ -22,29 +22,28 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
     setState(() {
       if (totalWickets < maxWickets && totalOvers < maxOvers) {
         if (score == 'W') {
-          totalWickets++; // Increment wickets
-          scores[currentBall] = 'W'; // Add 'W' to current ball in scores
-          allBallScores.add('W'); // Track all ball scores
-          currentBall++; // Move to the next ball
+          totalWickets++;
+          scores[currentBall] = 'W';
+          allBallScores.add('W');
+          currentBall++;
         } else if (score == 'NB' || score == 'WB') {
-          totalScore += 1; // Increment score for NB or WB
-          allBallScores.add(score); // Track all ball scores
+          totalScore += 1;
+          allBallScores.add(score);
         } else if (score.isNotEmpty) {
-          totalScore += int.tryParse(score) ?? 0; // Add runs
-          scores[currentBall] = score; // Store the score
-          allBallScores.add(score); // Track all ball scores
-          currentBall++; // Move to the next ball
+          totalScore += int.tryParse(score) ?? 0;
+          scores[currentBall] = score;
+          allBallScores.add(score);
+          currentBall++;
         }
 
         if (currentBall == 6) {
-          totalOvers++; // Increment overs after 6 balls (complete over)
-          currentBall = 0; // Reset for next over
-          scores = List.filled(6, '', growable: false); // Clear ball scores
+          totalOvers++;
+          currentBall = 0;
+          scores = List.filled(6, '', growable: false);
         }
       }
     });
   }
-
 
   // Undo the last action
   void undoLast() {
@@ -64,13 +63,13 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
           scores[currentBall] = '';
         } else if (totalOvers > 0) {
           totalOvers--;
-          currentBall = 5; // Move to the last ball of the previous over
+          currentBall = 5;
         }
       }
     });
   }
 
-  // Reset match (new innings or reset)
+  // Reset match
   void resetMatch() {
     setState(() {
       totalScore = 0;
@@ -87,28 +86,48 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
     TextEditingController oversController = TextEditingController();
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing the dialog
+      barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Set Number of Overs'),
-          content: TextField(
-            controller: oversController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(hintText: 'Enter number of overs'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                int enteredOvers = int.tryParse(oversController.text) ?? 0;
-                if (enteredOvers > 0) {
-                  setState(() {
-                    maxOvers = enteredOvers;
-                    oversSet = true; // Mark overs as set
-                  });
-                  Navigator.pop(context);
-                }
-              },
-              child: Text('Set'),
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/Background.jpg',
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                child: Container(
+                  color: Colors.black.withOpacity(0.4),
+                ),
+              ),
+            ),
+            Center(
+              child: AlertDialog(
+                title: Text('Set Number of Overs'),
+                content: TextField(
+                  controller: oversController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(hintText: 'Enter number of overs'),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      int enteredOvers = int.tryParse(oversController.text) ?? 0;
+                      if (enteredOvers > 0) {
+                        setState(() {
+                          maxOvers = enteredOvers;
+                          oversSet = true;
+                        });
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Text('Set'),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -120,7 +139,7 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      showOversDialog(); // Show dialog immediately after the widget builds
+      showOversDialog();
     });
   }
 
@@ -197,7 +216,7 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
                 ],
               ),
               SizedBox(height: 20),
-              Expanded( // Fix the issue by wrapping GridView in Expanded
+              Expanded(
                 child: GridView.count(
                   crossAxisCount: 4,
                   shrinkWrap: true,
@@ -220,11 +239,10 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
         ],
       )
           : Center(
-        child: CircularProgressIndicator(), // Show loading indicator until overs are set
+        child: CircularProgressIndicator(),
       ),
     );
   }
-
 
   Widget buildCircle(String score) {
     Color? circleColor;
