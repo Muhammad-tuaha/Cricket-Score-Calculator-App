@@ -73,11 +73,13 @@ class _LoginPageState extends State<LoginPage> {
           ),
           // Blur effect
           BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3), // Reduce blur for smoother effect
             child: Container(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withOpacity(0.3), // Reduce opacity to lessen harshness
             ),
           ),
+
+
           // Login Form
           SingleChildScrollView(
             child: Center(

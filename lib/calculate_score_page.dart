@@ -98,7 +98,7 @@ class _CalculateScorePageState extends State<CalculateScorePage> {
             ),
             Positioned.fill(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
                 child: Container(
                   color: Colors.black.withOpacity(0.4),
                 ),
